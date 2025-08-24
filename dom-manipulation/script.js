@@ -220,10 +220,10 @@ async function syncQuotes() {
     if (newQuotesAdded > 0) {
         saveQuotes();
         populateCategories();
-        syncStatus.textContent = `Sync successful! ${newQuotesAdded} new quotes added from the server.`;
+        syncStatus.textContent = `Quotes synced with server! Added ${newQuotesAdded} new quotes.`;
         showRandomQuote();
     } else {
-        syncStatus.textContent = 'Sync successful! No new quotes to add from the server.';
+        syncStatus.textContent = 'Quotes synced with server!';
     }
 }
 
