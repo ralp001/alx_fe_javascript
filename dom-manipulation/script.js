@@ -1,6 +1,9 @@
 // Global quotes array
 let quotes = [];
 
+// Simulate a server URL
+const SERVER_URL = 'https://jsonplaceholder.typicode.com/posts?_limit=5';
+
 // Function to load quotes from local storage
 function loadQuotes() {
     const storedQuotes = localStorage.getItem('quotes');
@@ -150,10 +153,54 @@ function importFromJsonFile(event) {
     fileReader.readAsText(event.target.files[0]);
 }
 
+// Function to simulate syncing with a server and resolving conflicts
+async function syncQuotes() {
+    const syncStatus = document.getElementById('syncStatus');
+    syncStatus.textContent = 'Syncing...';
+    
+    try {
+        const response = await fetch(SERVER_URL);
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const serverQuotes = await response.json();
+        
+        // Transform the mock API data into the quote format
+        const newServerQuotes = serverQuotes.map(post => ({
+            text: post.title,
+            category: 'Server Sync'
+        }));
+        
+        // Simple conflict resolution: server data takes precedence
+        // Check for new quotes from the server that don't exist locally
+        const newLocalQuotes = newServerQuotes.filter(sQuote => 
+            !quotes.some(lQuote => lQuote.text === sQuote.text)
+        );
+        
+        if (newLocalQuotes.length > 0) {
+            quotes.push(...newLocalQuotes);
+            saveQuotes();
+            populateCategories();
+            syncStatus.textContent = `Sync successful! Added ${newLocalQuotes.length} new quotes from the server.`;
+        } else {
+            syncStatus.textContent = 'Sync successful! No new quotes to add.';
+        }
+
+        showRandomQuote();
+
+    } catch (error) {
+        syncStatus.textContent = `Sync failed: ${error.message}`;
+        console.error('There was a problem with the fetch operation:', error);
+    }
+}
+
 // Event listener to run functions when the page is loaded
 document.addEventListener('DOMContentLoaded', () => {
     loadQuotes(); // Load quotes when the page starts
     populateCategories(); // Populate the category filter
     showRandomQuote(); // Display an initial quote
     document.getElementById('newQuote').addEventListener('click', showRandomQuote);
+    
+    // Optional: Periodically sync with the server
+    // setInterval(syncQuotes, 60000); // Sync every 60 seconds
 });
